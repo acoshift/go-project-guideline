@@ -106,6 +106,25 @@ npm install -g node-sass
 
 ; jq
 brew install jq
+
+; below is for devops
+
+; docker
+open https://store.docker.com/editions/community/docker-ce-desktop-mac
+
+; gcloud sdk https://cloud.google.com/sdk/
+brew install python
+cd ~
+curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-189.0.0-darwin-x86_64.tar.gz
+tar zxf google-cloud-sdk-189.0.0-darwin-x86_64.tar.gz
+rm google-cloud-sdk-189.0.0-darwin-x86_64.tar.gz
+./google-cloud-sdk/install.sh
+source ~/.bash_profile
+gcloud init
+gcloud components install docker-credential-gcr gsutil beta
+
+; kubectl
+brew install kubectl
 ```
 
 and run `brew update && brew upgrade` when you can.
