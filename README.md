@@ -79,40 +79,40 @@ Another OS won't run the script and I don't want to maintain script for all OSes
 ## Softwares
 
 ```sh
-; Go
+# Go
 brew install go
-; or brew install go --devel
+# or brew install go --devel
 
-; dep
+# dep
 brew install dep
 
-; gin live reload
+# gin live reload
 go get -u github.com/codegangsta/gin
 
-; Redis
+# Redis
 brew install redis
 brew services start redis
 
-; PostgreSQL
+# PostgreSQL
 brew install postgres
 brew services start postgres
 
-; NodeJS
+# NodeJS
 brew install n
 n lts
 
-; SCSS
+# SCSS
 npm install -g node-sass
 
-; jq
+# jq
 brew install jq
 
-; below is for devops
+# below is for devops
 
-; docker
+# docker
 open https://store.docker.com/editions/community/docker-ce-desktop-mac
 
-; gcloud sdk https://cloud.google.com/sdk/
+# gcloud sdk https://cloud.google.com/sdk/
 brew install python
 cd ~
 curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-189.0.0-darwin-x86_64.tar.gz
@@ -123,7 +123,7 @@ source ~/.bash_profile
 gcloud init
 gcloud components install docker-credential-gcr gsutil beta
 
-; kubectl
+# kubectl
 brew install kubectl
 ```
 
