@@ -278,7 +278,7 @@ data:
 
 ### entity
 
-- Contains web's entities
+- Contains entities for all use-cases
 
 ### repository
 
@@ -289,7 +289,7 @@ data:
 ### app
 
 - Contains all handlers, template funcs
-- Use global var for store config here
+- Use global vars here
 
 ### service
 
