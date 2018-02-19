@@ -420,7 +420,7 @@ func ListAdminUsers(q Queryer, limit, offset int64) ([]*entity.AdminUser, error)
 ```go
 // Transfer transfers money from src user to dst user
 func Transfer(db *sql.DB, srcUserID, dstUserID string, currency string, amount decimal.Decimal) error {
-    return pgsql.RunInTx(db, nil func(tx *sql.Tx) error {
+    return pgsql.RunInTx(db, nil, func(tx *sql.Tx) error {
         // get src user's balance
 
         // verify src balance with amount
