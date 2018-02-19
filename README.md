@@ -11,7 +11,7 @@ macOS ofc :D
 
 Use macOS srsly, all script will write to use w/ macOS.
 
-Another OS won't run the script and no one don't want to maintain script for all OSes.
+Another OS won't run the script and no one want to maintain script for all OSes.
 
 ## Editors
 
