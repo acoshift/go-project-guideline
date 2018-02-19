@@ -312,11 +312,11 @@ data:
 
 ## Workflow
 
-- Everyone work on master
-- Only push working code, DO NOT push anything broke, other peep can not work
-- Always use git pull -r when can not push
+- Everyone work on master (YES!!! on MASTER)
+- Only push working code, DO NOT push any broken code, other peep can not work
+- Always use `git pull -r` when can not (or before) push
 - For new feature that will break current feature, use another branch
-- Write good code at the start, we don't review your code
+- Write good code at the start, no one will review your code
 - Trust teammate code
 
 ## Testing
@@ -328,11 +328,11 @@ data:
 
 ## Deployment
 
-- Check any database schema changes, if it break wait until 2AM and scale down deployment to 0
+- Check any database schema changes, if it break wait until 2 AM and scale down deployment to 0
 - Build inside our computer
 - Push to gcr.io
 - Set new image to k8s
-- Always use commit sha to tag docker
+- Always use commit sha to tag docker image
 
 ### k8s checklist
 
