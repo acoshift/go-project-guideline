@@ -603,7 +603,7 @@ func methodFilter(h http.Handler) http.Handler {
 }
 ```
 
-- Protect CSRF w/ origin and referal (disable when development) [acoshift/csrf](https://github.com/acoshift/csrf)
+- Protect CSRF w/ origin and referer (disable when development) [acoshift/csrf](https://github.com/acoshift/csrf)
 
 ```go
 csrf.New(csrf.Config{
