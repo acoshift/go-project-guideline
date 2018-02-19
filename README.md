@@ -107,6 +107,15 @@ npm install -g node-sass
 # jq
 brew install jq
 
+# postgres client
+brew install pgcli
+
+# postgres gui
+open https://eggerapps.at/postico/
+
+# HTTP client
+open https://paw.cloud/
+
 # below is for devops
 
 # docker
@@ -128,3 +137,78 @@ brew install kubectl
 ```
 
 and run `brew update && brew upgrade` when you can.
+
+## Project Structure
+
+```
+.
+|-- Dockerfile
+|-- Gopkg.lock
+|-- Gopkg.toml
+|-- Makefile
+|-- README.md
+|-- app
+|-- assets
+|   |-- favicon.png
+|-- config
+|-- deploy.yaml
+|-- entity
+|-- main.go
+|-- migrate
+|-- node_modules
+|-- package.json
+|-- repository
+|-- styles
+|   |-- config.scss
+|   |-- main.scss
+|   `-- utils.scss
+|-- table.sql
+|-- template
+|   |-- _components
+|   |-- _layout
+|   |-- admin
+|   |-- app
+|   |-- auth
+|   `-- main.tmpl
+|-- vendor
+`-- yarn.lock
+```
+
+> Only 1 .go file at root folder name main.go
+
+### main.go
+
+- load all configs using configfile from config folder
+- init all vars ex. sql.DB, redis.Pool, google client
+
+### config
+
+- contains all config
+- each file store 1 config
+
+### table.sql
+
+- contains latest version of schema
+
+### migrate
+
+- all migrate script if table schema changes
+- include the first version of table.sql
+
+### template
+
+- contains all Go template
+- all layout start with `_`
+
+### entity
+
+- contains web's entities
+
+### repository
+
+- contains functions to fetch data from database
+- 1 function can do only 1 thing
+
+### app
+
+- contains all handlers
