@@ -847,7 +847,7 @@ FROM acoshift/go-scratch
 ADD ENTRYPOINT / # your entrypoint
 COPY template /template
 COPY assets /assets
-COPY static.yaml /static.yaml
+COPY .build/static.yaml /static.yaml
 EXPOSE 8080
 
 ENTRYPOINT ["/ENTRYPOINT"] # your entrypoint
