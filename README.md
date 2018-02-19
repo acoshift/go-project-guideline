@@ -3,13 +3,15 @@
 Acoshift's Go Project Guideline
 for High Productivity and Maintainable w/o Test
 
+> DO NOT use this guideline if you don't know what you're doing :P
+
 ## OS
 
 macOS ofc :D
 
 Use macOS srsly, all script will write to use w/ macOS.
 
-Another OS won't run the script and I don't want to maintain script for all OSes.
+Another OS won't run the script and no one don't want to maintain script for all OSes.
 
 ## Editors
 
@@ -111,16 +113,16 @@ npm install -g node-sass
 # jq
 brew install jq
 
-# postgres client
+# PostgreSQL Client
 brew install pgcli
 
-# postgres gui
+# PostgreSQL GUI
 open https://eggerapps.at/postico/
 
 # HTTP client
 open https://paw.cloud/
 
-# below is for devops
+# --- devops ---
 
 # docker
 open https://store.docker.com/editions/community/docker-ce-desktop-mac
@@ -144,7 +146,8 @@ and run `brew update && brew upgrade` when you can.
 
 ## Project Structure
 
-```
+```bash
+$ tree .
 .
 |-- .gitignore
 |-- Dockerfile
@@ -345,10 +348,11 @@ data:
 - Create new ingress (l7 load balancer)
 - Fix domain for l7 ingress
 - Use isolate secret to store tls in nginx-ingress
+- Setup ingress's rate limit annotation for your use-case
 - Create configmap
 - Set resource requests
 - Set revision history to 3
-- Set replicas to number of node -1
+- Set replicas to number of node - 1
 - Create deployment
 - Create pod distrubtion budget
 
@@ -436,7 +440,7 @@ func Transfer(db *sql.DB, srcUserID, dstUserID string, currency string, amount d
 
 ### Entity
 
-- Split entity for each use case
+- Split entity for each use-case
 
 ```go
 // User is the current user
