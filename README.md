@@ -80,6 +80,9 @@ Another OS won't run the script and I don't want to maintain script for all OSes
 ## Softwares
 
 ```sh
+# git
+brew install git
+
 # Go
 brew install go
 # or brew install go --devel
