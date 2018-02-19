@@ -237,6 +237,13 @@ and run `brew update && brew upgrade` when you can.
 - Write good code at the start, we don't review your code
 - Trust teammate code
 
+## Testing
+
+- DO NOT write test, you have 4294967295-1 things to do
+- No one going to maintain your test, include yourself
+- Test won't guarantee that it won't break, your code is
+- Requirement will 100% change anyway
+
 ## Deployment
 
 - Check any database schema changes,
