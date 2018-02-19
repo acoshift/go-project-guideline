@@ -158,6 +158,7 @@ and run `brew update && brew upgrade` when you can.
 |-- node_modules
 |-- package.json
 |-- repository
+|-- service
 |-- styles
 |   |-- config.scss
 |   |-- main.scss
@@ -207,8 +208,51 @@ and run `brew update && brew upgrade` when you can.
 ### repository
 
 - contains functions to fetch data from database
-- 1 function can do only 1 thing
+- 1 function can do only 1 thing (call db 1 time)
 
 ### app
 
-- contains all handlers
+- contains all handlers, template funcs
+- use global var for store config here
+
+### service
+
+- store complex logic (call repository multiple time in tx)
+
+> always use pgsql.RunInTx if write to database multiple time
+
+> DO NOT do long operation inside tx ex. verify password
+
+### vendor
+
+- always push vendor to git
+
+## Workflow
+
+- Everyone work on master
+- Only push working code, DO NOT push anything broke, other peep can not work
+- Always use git pull -r when can not push
+- For new feature that will break current feature, use another branch
+- Write good code at the start, we don't review your code
+- Trust teammate code
+
+## Deployment
+
+- Check any database schema changes,
+if it break wait until 2AM and scale down deployment to 0
+- Build inside our computer
+- Push to gcr.io
+- Set new image to k8s
+- Always use commit sha to tag docker
+
+### k8s checklist
+
+- Create new ingress (l7 load balancer)
+- Fix domain for l7 ingress
+- Use isolate secret to store tls in nginx-ingress
+- Create configmap
+- Set resource requests
+- Set revision history to 3
+- Set replicas to number of node -1
+- Create deployment
+- Create pod distrubtion budget
