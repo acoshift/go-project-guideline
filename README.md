@@ -503,3 +503,24 @@ func RemoveTokensCreatedBefore(q Queryer, before time.Time) error {
     ...
 }
 ```
+
+### Handler
+
+- Panic when unexpected error, that *CAN* *NOT* continue
+
+```go
+func must(err error) {
+    if err != nil {
+        panic(err)
+    }
+}
+
+func profileGetHandler(ctx hime.Context) hime.Result {
+    user := getUser(ctx)
+
+    config, err := repository.GetUserConfig(db, user.ID)
+    must(err)
+
+    ...
+}
+```
