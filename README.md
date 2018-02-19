@@ -832,7 +832,6 @@ rollback:
 ```.gitignore
 .DS_Store
 gin-bin
-/static.yaml
 private/
 node_modules/
 .build/
