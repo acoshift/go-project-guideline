@@ -146,6 +146,7 @@ and run `brew update && brew upgrade` when you can.
 
 ```
 .
+|-- .gitignore
 |-- Dockerfile
 |-- Gopkg.lock
 |-- Gopkg.toml
@@ -163,7 +164,7 @@ and run `brew update && brew upgrade` when you can.
 |-- package.json
 |-- repository
 |-- service
-|-- styles
+|-- style
 |   |-- config.scss
 |   |-- main.scss
 |   `-- utils.scss
@@ -238,6 +239,25 @@ func main() {
 - Contains all configs
 - Each file store only 1 config (one line)
 
+ex. `config/session_host`
+`localhost:6379`
+
+config directory **MUST** equal to k8s ConfigMap
+
+#### for configmap
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: project
+  labels:
+    app: project
+data:
+  session_host: redis-1:6379
+  session_prefix: 'project:'
+```
+
 ### table.sql
 
 - Contains the latest version of database schema
@@ -251,7 +271,7 @@ func main() {
 ### template
 
 - Contains all Go template
-- All layout *MUST* start with `_`
+- All layout **MUST** start with `_`
 
 ### entity
 
@@ -261,7 +281,7 @@ func main() {
 
 - Contains functions to fetch data from database
 - One function can do only one thing (ex. call db 1 time)
-- All functions *MUST* *BE* stateless
+- All functions **MUST** **BE** stateless
 
 ### app
 
@@ -364,7 +384,7 @@ import (
 
 ### Comment
 
-- Write comment for all *export*
+- Write comment for all **export**
 
 ```go
 // Config is the app's config
@@ -387,7 +407,7 @@ func FindAdminUsers(q Queryer, username string) ([]*entity.AdminUser, error) {
 }
 ```
 
-- Write comments for complex logic *before* write code
+- Write comments for complex logic **before** write code
 
 ```go
 // Transfer transfer money from src user to dst user
@@ -430,7 +450,7 @@ type AdminUser struct {
 
 - For slice, always returns slice of pointer to struct `[]*entity.Type`
 
-- For non-nil error, pointer *MUST* *NOT* nil, include slice (use zero length slice)
+- For non-nil error, pointer **MUST** **NOT** nil, include slice (use zero length slice)
 
 - Use plural for slice
 
@@ -506,7 +526,7 @@ func RemoveTokensCreatedBefore(q Queryer, before time.Time) error {
 
 ### Handler
 
-- Panic when unexpected error, that *CAN* *NOT* continue
+- Panic when unexpected error, that **CAN** **NOT** continue (fatal error for handler scoped)
 
 ```go
 func must(err error) {
@@ -523,4 +543,156 @@ func profileGetHandler(ctx hime.Context) hime.Result {
 
     ...
 }
+```
+
+- Use [hime](https://github.com/acoshift/hime) for handler standard
+
+- Always have health check at `/healthz`
+
+```go
+mux.Handle("/healthz", http.HandlerFunc(healthzHandler))
+
+...
+
+func healthzHandler(w http.ResponseWriter, r *http.Request) {
+    w.WriteHeader(http.StatusOK)
+}
+```
+
+### Security Middlewares
+
+- Reject CORS if **NOT** write API
+
+```go
+func noCORS(h http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        if r.Method == http.MethodOptions {
+            http.Error(w, "Forbidden", http.StatusForbidden)
+            return
+        }
+        h.ServeHTTP(w, r)
+    })
+}
+```
+
+- Add security headers [securityheaders.io](https://securityheaders.io/)
+
+```go
+func securityHeaders(h http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Set(header.XFrameOptions, "deny")
+        w.Header().Set(header.XXSSProtection, "1; mode=block")
+        w.Header().Set(header.XContentTypeOptions, "nosniff")
+        h.ServeHTTP(w, r)
+    })
+}
+```
+
+- Filter not use methods
+
+```go
+func methodFilter(h http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        switch r.Method {
+        case http.MethodGet, http.MethodHead, http.MethodPost:
+            h.ServeHTTP(w, r)
+        default:
+            http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+        }
+    })
+}
+```
+
+- Protect CSRF w/ origin and referal (disable when development) [acoshift/csrf](https://github.com/acoshift/csrf)
+
+```go
+csrf.New(csrf.Config{
+    Origins: []string{"https://yourwebsite"},
+}),
+```
+
+## Style
+
+- Add hash to file name
+
+- Use Google Storage to store all style versions
+
+- Always set max-age to maximum (31536000)
+
+- Always use `-Z` when copy using gsutil
+
+> See Makefile section for more detail
+
+## Makefile
+
+```makefile
+PROJECT=YOUR GCP PROJECT
+IMAGE=YOUR DOCKER IMAGE REPOSITORY
+ENTRYPOINT=YOUR COMPILED FILE NAME
+BUCKET=YOUR BUCKET NAME
+DEPLOYMENT=YOUR K8S DEPLOYMENT NAME
+CONTAINER=YOUR K8S CONTAINER NAME
+
+COMMIT_SHA=$(shell git rev-parse HEAD)
+GO=go
+
+dev:
+    gin -p 8000 -a 8080 -x vendor --all -i
+
+clean:
+    rm -f $(ENTRYPOINT)
+
+style:
+    node-sass --output-style compressed --include-path node_modules style/main.scss > assets/style.css
+
+deploy-style:
+    yarn install
+    mkdir -p .build
+    node-sass --output-style compressed --include-path node_modules style/main.scss > .build/style.css
+    $(eval style := style.$(shell cat .build/style.css | md5).css)
+    mv .build/style.css .build/$(style)
+    gsutil -h "Cache-Control:public, max-age=31536000" cp -Z .build/$(style) gs://$(BUCKET)/$(style)
+    echo "style.css: https://storage.googleapis.com/$(BUCKET)/$(style)" > .build/static.yaml
+
+build: clean
+    env GOOS=linux GOARCH=amd64 CGO_ENABLED=0 $(GO) build -o $(ENTRYPOINT) -ldflags '-w -s' main.go
+
+docker: build deploy-style
+    docker build -t $(IMAGE):$(COMMIT_SHA) .
+    docker push $(IMAGE):$(COMMIT_SHA)
+
+patch:
+    kubectl set image deploy/$(DEPLOYMENT) $(CONTAINER)=$(IMAGE):$(COMMIT_SHA)
+
+deploy: docker patch
+
+rollback:
+    kubectl rollout undo deploy/$(DEPLOYMENT)
+```
+
+## .gitignore
+
+```.gitignore
+.DS_Store
+gin-bin
+/static.yaml
+private/
+node_modules/
+.build/
+/assets/style.css
+/projectname # compiled file name
+```
+
+## Dockerfile
+
+```Dockerfile
+FROM acoshift/go-scratch
+
+ADD ENTRYPOINT / # your entrypoint
+COPY template /template
+COPY assets /assets
+COPY static.yaml /static.yaml
+EXPOSE 8080
+
+ENTRYPOINT ["/ENTRYPOINT"] # your entrypoint
 ```
