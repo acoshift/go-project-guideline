@@ -1,6 +1,7 @@
 # go-project-guideline
 
 Acoshift's Go Project Guideline
+for High Productivity and Maintainable w/o Test
 
 ## OS
 
