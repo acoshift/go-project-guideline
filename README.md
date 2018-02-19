@@ -456,7 +456,7 @@ type AdminUser struct {
 
 ### Repository
 
-- DO NOT use `ID`, use userID, txID, etc.
+- DO NOT use `id`, use userID, txID, etc.
 
 - For struct, always returns pointer to struct `*entity.Type`
 
@@ -464,7 +464,7 @@ type AdminUser struct {
 
 - For non-nil error, pointer **MUST** **NOT** nil, include slice (use zero length slice)
 
-- Use plural for slice
+- Use plural for slice, ex. Users, Tokens
 
 - Always use `int64` for limit, offset, count
 
@@ -533,6 +533,151 @@ func RemoveUserTokens(q Queryer, userID string) error {
 
 func RemoveTokensCreatedBefore(q Queryer, before time.Time) error {
     ...
+}
+```
+
+- `Create` for insert data
+
+### Repository function templates
+
+- Select multiple rows
+
+```go
+func ListUsers(q Queryer, limit, offset int64) ([]*entity.User, error) {
+    // always use lower case SQL
+    rows, err := q.Query(`
+        select
+            id, username, email,
+            created_at, updated_at
+        from users
+        order by created_at desc
+        offset $1 limit $2
+    `, offset, limit)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    xs := make([]*entity.User, 0)
+    for rows.Next() {
+        var x entity.User
+        err = rows.Scan(
+            &x.ID, &x.Username, &x.Email, // use line-break like SQL above
+            &x.CreatedAt, &x.UpdatedAt,
+        )
+        if err != nil {
+            return nil, err
+        }
+        xs = append(xs, &x)
+    }
+    if err = rows.Err(); err != nil {
+        return nil, err
+    }
+    return xs, nil
+}
+```
+
+- Select one row
+
+```go
+func GetUser(q Queryer, userID string) (*entity.User, error) {
+    var x entity.User
+    err := q.Query(`
+        select
+            id, username, email,
+            created_at, updated_at
+        from users
+        where id = $1
+    `, userID).Scan( // use line-break like SQL above
+        &x.ID, &x.Username, &x.Email,
+        &x.CreatedAt, &x.UpdatedAt,
+    )
+    if err != nil {
+        return nil, err
+    }
+    return &x, nil
+}
+```
+
+- Select w/ join (always use `left join` if possible), for `on` use joined table on the left
+
+```go
+func ListAdminTxs(q Queryer, limit, offset int64) ([]*entity.AdminTx, error) {
+    rows, err := q.Query(`
+        select
+            t.id, u.username, t.currency, t.amount,
+            t.type, t.created_at
+        from transactions as t
+            left join users as u on u.id = t.user_id
+        order by t.created_at desc
+        offset $1 limit $2
+    `, offset, limit)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    xs := make([]*entity.AdminTx, 0)
+    for rows.Next() {
+        var x entity.AdminTx
+        err = rows.Scan(
+            &x.ID, &x.Username, &x.Currency, &x.Amount,
+            &x.Type, &x.CreatedAt,
+        )
+        if err != nil {
+            return nil, err
+        }
+        xs = append(xs, &x)
+    }
+    if err = rows.Err(); err != nil {
+        return nil, err
+    }
+    return xs, nil
+}
+```
+
+- Insert, create model if params too long
+
+```go
+// CreateUserModel is the model for CreateUser
+type CreateUserModel struct {
+    Username       string
+    Email          string
+    HashedPassword string
+    ReferrerID     string
+}
+
+// CreateUser creates new user
+func CreateUser(q Queryer, x *CreateUserModel) (userID string, err error) {
+    err = q.QueryRow(`
+        insert into users
+            (
+                username, email, password,
+                referrer
+            )
+        values
+            ($1, $2, $3, $4)
+        returning id
+    `,
+        x.Username, x.Email, x.HashedPassword,
+        sql.NullString{String: x.ReferrerID, Valid: x.ReferrerID != ""},
+    ).Scan(&userID)
+    return
+}
+```
+
+- Update, use where for first placeholder
+
+```go
+func SetUserPassword(q Queryer, userID string, hashedPassword string) error {
+    _, err := q.Exec(`
+        update users
+        set
+            password = $2
+            updated_at = now()
+        where id = $1
+    `, userID, hashedPassword)
+    return err
 }
 ```
 
