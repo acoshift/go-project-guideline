@@ -180,53 +180,110 @@ and run `brew update && brew upgrade` when you can.
 
 ### main.go
 
-- load all configs using configfile from config folder
-- init all vars ex. sql.DB, redis.Pool, google client
+- Load all configs using configfile from config folder
+- Init all vars ex. sql.DB, redis.Pool, google client
+
+```go
+func main() {
+    rand.Seed(time.Now().UnixNano())
+
+    config := configfile.NewReader("config")
+
+    db, err := sql.Open("postgres", config.String("db"))
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    app := app.New(&app.Config{
+        DB:            db,
+        SessionKey:    config.Bytes("session_key"),
+        SessionSecret: config.Bytes("session_secret"),
+        SessionStore: redisStore.New(redisStore.Config{
+            Pool: &redis.Pool{
+                Dial: func() (redis.Conn, error) {
+                    return redis.Dial("tcp", config.String("session_host"))
+                },
+            },
+            Prefix: config.String("session_prefix"),
+        }),
+        EmailDialer: gomail.NewPlainDialer(
+            config.String("email_server"),
+            config.Int("email_port"),
+            config.String("email_user"),
+            config.String("email_password"),
+        ),
+        EmailFrom:       config.String("email_from"),
+        ReCaptchaSite:   config.String("recaptcha_site"),
+        ReCaptchaSecret: config.String("recaptcha_secret"),
+    })
+
+    err = hime.New().
+        TemplateDir("template").
+        TemplateRoot("root").
+        Minify().
+        Handler(app).
+        GracefulShutdown().
+        ListenAndServe(":8080")
+    if err != nil {
+        log.Fatal(err)
+    }
+}
+```
 
 ### config
 
-- contains all config
-- each file store 1 config
+- Contains all configs
+- Each file store only 1 config (one line)
 
 ### table.sql
 
-- contains latest version of schema
+- Contains the latest version of database schema
 
 ### migrate
 
-- all migrate script if table schema changes
-- include the first version of table.sql
+- Write migrate script if table schema changes
+- Include the first version of table.sql
+- Run though migrate will equals to run table.sql
 
 ### template
 
-- contains all Go template
-- all layout start with `_`
+- Contains all Go template
+- All layout *MUST* start with `_`
 
 ### entity
 
-- contains web's entities
+- Contains web's entities
 
 ### repository
 
-- contains functions to fetch data from database
-- 1 function can do only 1 thing (call db 1 time)
+- Contains functions to fetch data from database
+- One function can do only one thing (ex. call db 1 time)
+- All functions *MUST* *BE* stateless
 
 ### app
 
-- contains all handlers, template funcs
-- use global var for store config here
+- Contains all handlers, template funcs
+- Use global var for store config here
 
 ### service
 
-- store complex logic (call repository multiple time in tx)
+- Contains complex logics (call repository multiple time in tx)
 
 > always use pgsql.RunInTx if write to database multiple time
-
+>
 > DO NOT do long operation inside tx ex. verify password
 
 ### vendor
 
-- always push vendor to git
+- Always push vendor to git
+- And use prune config below
+
+```toml
+[prune]
+  non-go = true
+  go-tests = true
+  unused-packages = true
+```
 
 ## Workflow
 
@@ -246,8 +303,7 @@ and run `brew update && brew upgrade` when you can.
 
 ## Deployment
 
-- Check any database schema changes,
-if it break wait until 2AM and scale down deployment to 0
+- Check any database schema changes, if it break wait until 2AM and scale down deployment to 0
 - Build inside our computer
 - Push to gcr.io
 - Set new image to k8s
@@ -264,3 +320,183 @@ if it break wait until 2AM and scale down deployment to 0
 - Set replicas to number of node -1
 - Create deployment
 - Create pod distrubtion budget
+
+## Go Guideline
+
+### Imports
+
+Order imports by
+
+- Native
+- Lib
+- Project
+
+```go
+import (
+    "database/sql"
+    "encoding/base64"
+    "html/template"
+    "io/ioutil"
+    "math/rand"
+    "net/http"
+    "time"
+
+    "github.com/acoshift/header"
+    "github.com/acoshift/hime"
+    "github.com/acoshift/httprouter"
+    "github.com/acoshift/middleware"
+    "github.com/acoshift/pgsql"
+    "github.com/acoshift/session"
+    "github.com/acoshift/webstatic"
+    "github.com/dustin/go-humanize"
+    "github.com/shopspring/decimal"
+    "github.com/skip2/go-qrcode"
+    "gopkg.in/gomail.v2"
+    "gopkg.in/yaml.v2"
+
+    "github.com/acoshift/project/entity"
+    "github.com/acoshift/project/repository"
+)
+```
+
+### Comment
+
+- Write comment for all *export*
+
+```go
+// Config is the app's config
+type Config struct {
+    DB              *sql.DB
+    SessionStore    session.Store
+    SessionKey      []byte
+    SessionSecret   []byte
+    EmailDialer     *gomail.Dialer
+    EmailFrom       string
+    ReCaptchaSite   string
+    ReCaptchaSecret string
+}
+```
+
+```go
+// FindAdminUsers finds user for admin view
+func FindAdminUsers(q Queryer, username string) ([]*entity.AdminUser, error) {
+    ...
+}
+```
+
+- Write comments for complex logic *before* write code
+
+```go
+// Transfer transfer money from src user to dst user
+func Transfer(db *sql.DB, srcUserID, dstUserID string, currency string, amount decimal.Decimal) error {
+    return pgsql.RunInTx(db, nil func(tx *sql.Tx) error {
+        // get src user's balance
+
+        // verify src balance with amount
+
+        // withdraw balance from src user
+
+        // deposit balance to dst user
+
+        return nil
+    })
+}
+```
+
+### Entity
+
+- Split entity for each use case
+
+```go
+// User is the current user
+type User struct {
+    ...
+}
+
+// AdminUser is the user for admin view
+type AdminUser struct {
+    ...
+}
+```
+
+### Repository
+
+- DO NOT use `ID`, use userID, txID, etc.
+
+- For struct, always returns pointer to struct `*entity.Type`
+
+- For slice, always returns slice of pointer to struct `[]*entity.Type`
+
+- For non-nil error, pointer *MUST* *NOT* nil, include slice (use zero length slice)
+
+- Use plural for slice
+
+- Always use `int64` for limit, offset, count
+
+- `Get` for get data from ID
+
+```go
+func GetUser(q Queryer, userID string) (*entity.User, error) {
+    ...
+}
+
+func GetUsername(q Queryer, userID string) (username string, err error) {
+    ...
+}
+```
+
+- `Find` for find from filters
+
+```go
+func FindPendingWithdrawTxs(q Queryer, limit, offset int64) ([]*entity.WithdrawTx, error) {
+    ...
+}
+```
+
+- `List` for list entities without filter
+
+```go
+func ListUsers(q Queryer, limit, offset int64) ([]*entity.User, error) {
+    ...
+}
+```
+
+- `Get` for aggregate data
+
+```go
+func GetUserCount(q Queryer) (cnt int64, err error) {
+    ...
+}
+
+func GetUserBalance(q Queryer, userID string) (balance decimal.Decimal, err error) {
+    ...
+}
+
+func GetUserTotalDeposit(q Queryer, userID string, currency string) (amount decimal.Decimal, err error) {
+    ...
+}
+```
+
+- `Set` for set data
+
+```go
+func SetUserPassword(q Queryer, userID string, hashedPassword string) error {
+    ...
+}
+```
+
+- `Remove` to delete data
+
+```go
+func RemoveToken(q Queryer, tokenID string) error {
+    ...
+}
+
+func RemoveUserTokens(q Queryer, userID string) error {
+    ...
+}
+
+func RemoveTokensCreatedBefore(q Queryer, before time.Time) error {
+    ...
+}
+```
