@@ -296,6 +296,8 @@ data:
 >
 > DO NOT do long operation inside tx ex. verify password
 
+- All functions in service **MUST** **BE** stateless
+
 ### vendor
 
 - Always push vendor to git
