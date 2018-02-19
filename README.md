@@ -310,6 +310,12 @@ data:
   unused-packages = true
 ```
 
+### assets
+
+- Try not to store anything in assets
+
+- Use Google Storage to store assets, and set max-age to maximum with hash filename
+
 ## Workflow
 
 - Everyone work on master (YES!!! on MASTER)
