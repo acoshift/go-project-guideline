@@ -354,7 +354,7 @@ data:
 - Set revision history to 3
 - Set replicas to number of node - 1
 - Create deployment
-- Create pod distrubtion budget
+- Create pod disruption budget
 
 ## Go Guideline
 
