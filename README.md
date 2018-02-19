@@ -418,7 +418,7 @@ func FindAdminUsers(q Queryer, username string) ([]*entity.AdminUser, error) {
 - Write comments for complex logic **before** write code
 
 ```go
-// Transfer transfer money from src user to dst user
+// Transfer transfers money from src user to dst user
 func Transfer(db *sql.DB, srcUserID, dstUserID string, currency string, amount decimal.Decimal) error {
     return pgsql.RunInTx(db, nil func(tx *sql.Tx) error {
         // get src user's balance
