@@ -588,7 +588,7 @@ func securityHeaders(h http.Handler) http.Handler {
 }
 ```
 
-- Filter not use methods
+- Filter **unused** methods
 
 ```go
 func methodFilter(h http.Handler) http.Handler {
