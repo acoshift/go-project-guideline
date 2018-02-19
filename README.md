@@ -409,8 +409,8 @@ type Config struct {
 ```
 
 ```go
-// FindAdminUsers finds user for admin view
-func FindAdminUsers(q Queryer, username string) ([]*entity.AdminUser, error) {
+// ListAdminUsers lists all users for admin view
+func ListAdminUsers(q Queryer, limit, offset int64) ([]*entity.AdminUser, error) {
     ...
 }
 ```
