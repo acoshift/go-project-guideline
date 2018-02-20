@@ -99,10 +99,6 @@ go get -u github.com/codegangsta/gin
 brew install redis
 brew services start redis
 
-# PostgreSQL
-brew install postgres
-brew services start postgres
-
 # NodeJS
 brew install n
 n lts
@@ -110,8 +106,11 @@ n lts
 # SCSS
 npm install -g node-sass
 
-# jq
-brew install jq
+# --- backend ---
+
+# PostgreSQL (optional, normally use on cloud)
+brew install postgres
+brew services start postgres
 
 # PostgreSQL Client
 brew install pgcli
@@ -121,6 +120,9 @@ open https://eggerapps.at/postico/
 
 # HTTP client
 open https://paw.cloud/
+
+# jq (optional)
+brew install jq
 
 # --- devops ---
 
