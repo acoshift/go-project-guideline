@@ -12,4 +12,4 @@ For High Producivity and Maintainable without Test
 
 For Low Producivity and Maintainable with Test
 
-[DDD](https://github.com/acoshift/go-project-guideline/blob/master/DDD.md)
+[DDD.md](https://github.com/acoshift/go-project-guideline/blob/master/DDD.md)
