@@ -305,7 +305,9 @@ func (c *ctrl) Index(w http.ResponseWriter, r http.Request) {
 
 ## Testing
 
-## Mock Repository
+## Service
+
+### Mock Repository
 
 ```go
 // mock/user.go
@@ -315,6 +317,8 @@ func NewUserRepository() user.Repository {
     //
 }
 ```
+
+### Testing
 
 ```go
 // profile/service_test.go
@@ -333,6 +337,42 @@ func TestGetNotFound(t testing.T) {
     if resp != nil {
         t.Errorf("expected Get not found user returns nil response; got %v", resp)
     }
+}
+```
+
+## Endpoint
+
+```go
+// profile/endpoint_internal_test.go
+
+package endpoint
+
+// mock service, use your own mocking style
+typs mockService struct {
+    GetFunc         func(userID string) (*Profile, error)
+    ChangePhotoFunc func(userID string, r io.Reader) error
+}
+
+func (s *mockService) Get(userID string) (*Profile, error) {
+    return s.GetFunc(userID)
+}
+
+func (s *mockService) ChangePhoto(userID string, r io.Reader) error {
+    return s.ChangePhotoFunc(userID, r)
+}
+
+func TestGetHandler(t testing.T) {
+    s := &mockService {
+        GetFunc: func(userID string) (*Profile, error) {
+            return nil, ErrNotFound
+        },
+    }
+    h := makeGetEndpoint(s)
+    req := httptest.NewRequest(...)
+    resp := httptest.NewResponseRecoder(...)
+    h.ServeHTTP(w, r)
+
+    // check response
 }
 ```
 
