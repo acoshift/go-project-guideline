@@ -4,7 +4,7 @@ Acoshift's Go Project Guideline for Low Productivity but Maintainable w/ Test
 
 > Recommend for use this guileline for large project.
 >
-> DO NOT use in small project, you will end up write boilerplate code
+> DO NOT use in small project, you will end up write a lot of boilerplate code
 
 ## Project Structure
 
