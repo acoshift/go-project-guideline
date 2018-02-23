@@ -3,6 +3,7 @@
 Acoshift's Go Project Guideline for Low Productivity but Maintainable w/ Test
 
 > Recommend for use this guileline for large project.
+>
 > DO NOT use in small project, you will end up write boilerplate code
 
 ## Project Structure
@@ -49,6 +50,7 @@ Acoshift's Go Project Guideline for Low Productivity but Maintainable w/ Test
 |   |-- middleware.go # grpc transport related middlewares
 |-- api # shared global data type ex. errors
 |   |-- errors.go # global errors
+|   |-- db.go # db interface
 |-- main.go
 |-- table.sql
 |-- migrate
@@ -78,6 +80,8 @@ Acoshift's Go Project Guideline for Low Productivity but Maintainable w/ Test
 |   |   |-- main.tmpl
 |   |   |-- _layout
 |   |-- webadmin # web admin's templates
+|-- mock # mock repositories
+|   |-- user.go # mock user repository
 ```
 ## Domains
 
@@ -140,7 +144,7 @@ type Repository interface {
 }
 ```
 
-then the `profile` service may require file repository
+then the `profile` service may require file, and user repository
 
 ```go
 // profile/service.go (continue)
@@ -242,10 +246,15 @@ Controller uses to handle multiple-page application (MPA).
 
 package landing
 
+import (
+    "path/to/profile/internal/filesystem"
+    // other imports ...
+)
+
 // New creates new landing handler
 func New(ctrl Controller) http.Handler {
     m := http.NewServeMux()
-    m.Handle("/-/", http.StripPrefix("/-", httptransport.FileSystem("assets/landing")))
+    m.Handle("/-/", http.StripPrefix("/-", filesystem.New("assets/landing")))
 
     r := httprouter.New()
     r.Get("/", ctrl.Index)
@@ -268,6 +277,7 @@ package landing
 import (
     "path/to/project/api"
     "path/to/project/landing/service"
+    "path/to/project/internal/renderer"
 )
 
 // Controller is the landing controller
@@ -284,12 +294,45 @@ func NewController(db api.DB, landings service.Landing) Controller {
 }
 
 type ctrl struct {
-    renderer renderer.Renderer // some renderer logic
+    renderer renderer.Renderer
     landings service.Landing
 }
 
 func (c *ctrl) Index(w http.ResponseWriter, r http.Request) {
     c.renderer.View("index", nil)
+}
+```
+
+## Testing
+
+## Mock Repository
+
+```go
+// mock/user.go
+
+// NewUserRepository creates new mock user repository
+func NewUserRepository() user.Repository {
+    //
+}
+```
+
+```go
+// profile/service_test.go
+
+package profile_test
+
+func TestGetNotFound(t testing.T) {
+    mockDB := mock.NewDB()
+    mockUsers := mock.NewUserRepository()
+    mockFiles = mock.NewFileRepository()
+    s := profile.NewService(mockDB, mockUsers, mockFiles)
+    resp, err := s.Get("not exists user id")
+    if err != profile.ErrNotExists {
+        t.Errorf("expected Get not found user returns ErrNotExists, got %v", err)
+    }
+    if resp != nil {
+        t.Errorf("expected Get not found user returns nil response; got %v", resp)
+    }
 }
 ```
 
