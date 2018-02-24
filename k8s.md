@@ -81,6 +81,21 @@ affinity:
       weight: 100
 ```
 
+or
+
+```yaml
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+    - labelSelector:
+        matchExpressions:
+        - key: app
+          operator: In
+          values:
+          - appname
+      topologyKey: kubernetes.io/hostname
+```
+
 - Pre-stop hook (if app not graceful shutdown)
 
 ```yaml
