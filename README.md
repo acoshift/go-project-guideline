@@ -13,3 +13,8 @@ For High Producivity and Maintainable without Test
 For Low Producivity and Maintainable with Test
 
 [DDD.md](https://github.com/acoshift/go-project-guideline/blob/master/DDD.md)
+
+## Others
+
+- [Kubernetes Checklist](https://github.com/acoshift/go-project-guideline/blob/master/k8s.md)
+
