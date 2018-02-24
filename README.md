@@ -17,4 +17,5 @@ For Low Producivity and Maintainable with Test
 ## Others
 
 - [Kubernetes Checklist](https://github.com/acoshift/go-project-guideline/blob/master/k8s.md)
+- [HTTP Headers Checklist](https://github.com/acoshift/go-project-guideline/blob/master/headers.md)
 
