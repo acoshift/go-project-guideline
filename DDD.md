@@ -39,9 +39,8 @@ Acoshift's Go Project Guideline for Low Productivity but Maintainable w/ Test
 |   |-- domain3.go # implement domain3 repository for storage1
 |-- storage2
 |   |-- domain4.go # implement domain4 repository for storage2
-|-- api # shared global data type ex. errors
+|-- api # shared global data types about api ex. errors
 |   |-- errors.go # global errors
-|   |-- db.go # db interface
 |-- main.go
 |-- table.sql
 |-- migrate
@@ -61,6 +60,8 @@ Acoshift's Go Project Guideline for Low Productivity but Maintainable w/ Test
 |   |-- grpctransport
 |   |   |-- grpctransport.go # grpc transport layer shared functions
 |   |   |-- middleware.go # grpc transport related middlewares
+|   |-- sqldb
+|   |   |-- db.go # interface for sql.DB, sql.Tx
 |-- config
 |   |-- config1
 |   |-- config2
@@ -134,13 +135,13 @@ package user
 // Repository is the user storage
 type Repository interface {
     // CreateUser creates new user and return created id
-    CreateUser(db api.DB, user *User) (userID string, err error)
+    CreateUser(db sqldb.DB, user *User) (userID string, err error)
 
     // GetUser gets user by id
-    GetUser(db api.DB, userID string) (*User, error)
+    GetUser(db sqldb.DB, userID string) (*User, error)
 
     // SetPhoto sets user's photo
-    SetPhoto(db api.DB, userID string, photoURL string) error
+    SetPhoto(db sqldb.DB, userID string, photoURL string) error
 }
 ```
 
@@ -150,12 +151,12 @@ then the `profile` service may require file, and user repository
 // profile/service.go (continue)
 
 // NewService creates new profile service
-func NewService(db api.DB, users user.Repository, files file.Repository) Service {
+func NewService(db sqldb.DB, users user.Repository, files file.Repository) Service {
     return &service{db, users, files}
 }
 
 type service struct {
-    db       api.DB
+    db       sqldb.DB
     users    user.Repository
     files    file.Repository
 }
@@ -209,7 +210,7 @@ type getResponse struct {
 // makeGetEndpoint creates http's endpoint for Get
 func makeGetEndpoint(s Service) http.Handler {
     return http.HandlerFunc(w http.ResponseWriter, r *http.Request) {
-        userID := app.GetUserID(r.Context())
+        userID := auth.GetUserID(r.Context())
         resp, err := s.Get(userID)
         if err != nil {
             httptransport.HandleError(w, r, err)
@@ -275,7 +276,7 @@ func New(ctrl Controller) http.Handler {
 package landing
 
 import (
-    "path/to/project/api"
+    "path/to/project/internal/sqldb"
     "path/to/project/landing/service"
     "path/to/project/internal/renderer"
 )
@@ -287,7 +288,7 @@ type Controller interface {
 }
 
 // NewController creates new landing controller
-func NewController(db api.DB, landings service.Landing) Controller {
+func NewController(db sqldb.DB, landings service.Landing) Controller {
     c := &ctrl{landings}
     // load templates to renderer
     return c
