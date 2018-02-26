@@ -25,7 +25,7 @@ Acoshift's Go Project Guideline for Low Productivity but Maintainable w/ Test
 |   |   |   |-- endpoint.go
 |   |   |   |-- transport.go
 |   |   |-- subdomain2
-|   |-- transport.go 
+|   |-- transport.go
 |-- domain2
 |   |-- service.go # service interface and implement for domain2
 |   |-- domain2.go # entities, and repository interface for domain2
@@ -39,15 +39,6 @@ Acoshift's Go Project Guideline for Low Productivity but Maintainable w/ Test
 |   |-- domain3.go # implement domain3 repository for storage1
 |-- storage2
 |   |-- domain4.go # implement domain4 repository for storage2
-|-- httptransport
-|   |-- httptransport.go # http transport layer shared functions
-|   |-- middleware.go # http transport related middlewares
-|-- websockettransport
-|   |-- websockettransport.go # websocket transport layer shared functions
-|   |-- middleware.go # websocket transport related middlewares
-|-- grpctransport
-|   |-- grpctransport.go # grpc transport layer shared functions
-|   |-- middleware.go # grpc transport related middlewares
 |-- api # shared global data type ex. errors
 |   |-- errors.go # global errors
 |   |-- db.go # db interface
@@ -61,6 +52,15 @@ Acoshift's Go Project Guideline for Low Productivity but Maintainable w/ Test
 |-- internal # shared logic, general data types ex. custom datetime type
 |   |-- internal1
 |   |   |-- internal1.go
+|   |-- httptransport
+|   |   |-- httptransport.go # http transport layer shared functions
+|   |   |-- middleware.go # http transport related middlewares
+|   |-- websockettransport
+|   |   |-- websockettransport.go # websocket transport layer shared functions
+|   |   |-- middleware.go # websocket transport related middlewares
+|   |-- grpctransport
+|   |   |-- grpctransport.go # grpc transport layer shared functions
+|   |   |-- middleware.go # grpc transport related middlewares
 |-- config
 |   |-- config1
 |   |-- config2
