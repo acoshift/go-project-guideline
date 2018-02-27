@@ -106,3 +106,15 @@ lifecycle:
       - sleep
       - "10"
 ```
+
+- Use External Name service if connect to external database (not in k8s cluster)
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  type: ExternalName
+  externalName: postgres.cluster.yourdomain.com
+```
