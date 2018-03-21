@@ -118,3 +118,14 @@ spec:
   type: ExternalName
   externalName: postgres.cluster.yourdomain.com
 ```
+
+- Add minimum pod for kube-dns-autoscaler config
+
+`$ kubectl edit cm/kube-dns-autoscaler -n kube-system`
+
+set min to node - 1
+
+```yaml
+data:
+  linear: '{"coresPerReplica":256,"min":2,"nodesPerReplica":16}'
+```
