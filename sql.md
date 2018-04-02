@@ -3,7 +3,7 @@
 1. Always use lower case.
 1. Indent with tab
 1. Always use not null, until you need null value
-1. Always set default to datatype default value (ex. int = 0, varchar = '', bool = false)
+1. Always set default to datatype default value (ex. int = 0, varchar = '', bool = false), except timestamp can set to now()
 
 ## Example
 
@@ -74,7 +74,7 @@ select
     email, password, is_admin,
     created_at, updated_at
 from users
-where email = $1
+where email = $1;
 ```
 
 ```sql
