@@ -23,9 +23,9 @@ resoucres:
 livenessProbe:
   httpGet:
     path: /healthz
-    port: 8080
+    port: 18080
     scheme: HTTP
-  initialDelaySeconds: 5
+  initialDelaySeconds: 10
   periodSeconds: 10
   successThreshold: 1
   failureThreshold: 3
@@ -33,13 +33,12 @@ livenessProbe:
 readinessProbe:
   httpGet:
     path: /healthz
-    port: 8080
+    port: 18080
     scheme: HTTP
-  initialDelaySeconds: 3
-  periodSeconds: 5
+  periodSeconds: 1
   successThreshold: 1
-  failureThreshold: 2
-  timeoutSeconds: 2
+  failureThreshold: 3
+  timeoutSeconds: 1
 ```
 
 - Deployment Strategy
@@ -123,7 +122,7 @@ spec:
 
 `$ kubectl edit cm/kube-dns-autoscaler -n kube-system`
 
-set min to node - 1
+set min to 2
 
 ```yaml
 data:
