@@ -35,8 +35,8 @@ brew install go
 # dep
 brew install dep
 
-# gin live reload
-go get -u github.com/codegangsta/gin
+# live reload
+go get -u github.com/acoshift/goreload
 
 # Redis
 brew install redis
@@ -767,7 +767,7 @@ COMMIT_SHA=$(shell git rev-parse HEAD)
 GO=go
 
 dev:
-    gin -p 8000 -a 8080 -x vendor --all -i
+    goreload -x vendor --all
 
 clean:
     rm -f $(ENTRYPOINT)
