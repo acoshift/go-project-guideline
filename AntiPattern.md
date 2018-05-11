@@ -18,66 +18,9 @@ Another OS won't run the script and no one want to maintain script for all OSes.
 - Recommend to use VSCode
 - VIM/NVIM if you know what you're doing.
 
-### VSCode Plugins
+### VSCode Plugins and Config
 
-- Go
-- ESLint
-- markdownlint
-- Sass
-- Vetur
-- Better TOML
-- Beautify
-
-### VSCode config
-
-```json
-{
-    "editor.tabCompletion": true,
-    "editor.snippetSuggestions": "inline",
-    "files.trimTrailingWhitespace": true,
-    "editor.insertSpaces": true,
-    "editor.tabSize": 4,
-    "editor.renderWhitespace": "all",
-    "editor.rulers": [140],
-    "go.liveErrors": {
-        "enabled": true,
-        "delay": 500
-    },
-    "files.exclude": {
-        "**/.git": true,
-        "**/.svn": true,
-        "**/.hg": true,
-        "**/CVS": true,
-        "**/.DS_Store": true,
-        "**/vendor/**": true,
-        "**/node_modules/**": true
-    },
-    "[go]": {
-        "editor.insertSpaces": false,
-        "editor.formatOnSave": true,
-        "editor.tabSize": 4
-    },
-    "[makefile]": {
-        "editor.insertSpaces": false,
-        "editor.tabSize": 4
-    },
-    "[javascript]": {
-        "editor.insertSpaces": true,
-        "editor.tabSize": 2
-    },
-    "[html]": {
-        "editor.insertSpaces": true,
-        "editor.tabSize": 2
-    },
-    "[scss]": {
-        "editor.insertSpaces": true,
-        "editor.tabSize": 2
-    },
-    "files.associations": {
-        "*.tmpl": "html"
-    }
-}
-```
+[vscode.md](https://github.com/acoshift/go-project-guideline/blob/master/vscode.md)
 
 ## Softwares
 
@@ -103,8 +46,8 @@ brew services start redis
 brew install n
 n lts
 
-# SCSS
-npm install -g node-sass
+# Nodejs dependencies
+yarn global add node-sass gulp
 
 # --- backend ---
 
@@ -159,7 +102,7 @@ $ tree .
 |-- README.md
 |-- app
 |-- assets
-|   |-- favicon.png
+|   `-- favicon.png
 |-- config
 |-- deploy.yaml
 |-- entity
@@ -182,10 +125,33 @@ $ tree .
 |   |-- auth
 |   `-- main.tmpl
 |-- vendor
+|-- Gulpfile.js
 `-- yarn.lock
 ```
 
 > Only 1 .go file at root folder name main.go
+
+### Gulpfile.js
+
+```js
+const gulp = require('gulp')
+const concat = require('gulp-concat')
+const sass = require('gulp-sass')
+
+const sassOption = {
+  outputStyle: 'compressed',
+  includePaths: 'node_modules'
+}
+
+gulp.task('default', ['style'])
+
+gulp.task('style', () => gulp
+  .src('./style/main.scss')
+  .pipe(sass(sassOption).on('error', sass.logError))
+  .pipe(concat('style.css'))
+  .pipe(gulp.dest('./assets'))
+)
+```
 
 ### main.go
 
@@ -706,21 +672,26 @@ func profileGetHandler(ctx hime.Context) hime.Result {
 
 - Use [hime](https://github.com/acoshift/hime) for handler standard
 
-- Always have health check at `/healthz`
+- Always have health check at `:18080/{readiness,liveness}`
 
 ```go
-mux.Handle("/healthz", http.HandlerFunc(healthzHandler))
+probe := probehandler.New()
+health := http.NewServeMux()
+health.Handle("/readiness", probe)
+health.Handle("/liveness", probehandler.Success())
 
-...
-
-func healthzHandler(w http.ResponseWriter, r *http.Request) {
-    w.WriteHeader(http.StatusOK)
-}
+err = hime.New().
+    // ...
+    GracefulShutdown().
+    Notify(probe.Fail).
+    Wait(5 * time.Second).
+    Before(func() { go http.ListenAndServe(":18080", health) }).
+    ListenAndServe(":8080")
 ```
 
 ### Security Middlewares
 
-- Reject CORS if **NOT** write API
+- Reject CORS
 
 ```go
 func noCORS(h http.Handler) http.Handler {
@@ -778,7 +749,7 @@ csrf.New(csrf.Config{
 
 - Always set max-age to maximum (31536000)
 
-- Always use `-Z` when copy using gsutil
+- Always use `-Z` when copy using gsutil, if directly use from Google Storage
 
 > See Makefile section for more detail
 
@@ -802,7 +773,7 @@ clean:
     rm -f $(ENTRYPOINT)
 
 style:
-    node-sass --output-style compressed --include-path node_modules style/main.scss > assets/style.css
+    gulp style
 
 deploy-style:
     yarn install
@@ -833,7 +804,7 @@ rollback:
 
 ```.gitignore
 .DS_Store
-gin-bin
+.goreload
 private/
 node_modules/
 .build/
