@@ -690,12 +690,13 @@ health := http.NewServeMux()
 health.Handle("/readiness", probe)
 health.Handle("/liveness", probehandler.Success())
 
+go http.ListenAndServe(":18080", health)
+
 err = hime.New().
     // ...
     GracefulShutdown().
     Notify(probe.Fail).
     Wait(5 * time.Second).
-    Before(func() { go http.ListenAndServe(":18080", health) }).
     ListenAndServe(":8080")
 ```
 
