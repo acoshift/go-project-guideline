@@ -538,9 +538,14 @@ func ListUsers(q Queryer, limit, offset int64) ([]*entity.User, error) {
         }
         xs = append(xs, &x)
     }
+
     if err = rows.Err(); err != nil {
         return nil, err
     }
+    if err = rows.Close(); err != nil {
+        return nil, err
+    }
+
     return xs, nil
 }
 ```
@@ -597,9 +602,14 @@ func ListAdminTxs(q Queryer, limit, offset int64) ([]*entity.AdminTx, error) {
         }
         xs = append(xs, &x)
     }
+
     if err = rows.Err(); err != nil {
         return nil, err
     }
+    if err = rows.Close(); err != nil {
+        return nil, err
+    }
+
     return xs, nil
 }
 ```
