@@ -128,3 +128,10 @@ set min to 2
 data:
   linear: '{"coresPerReplica":256,"min":2,"nodesPerReplica":16}'
 ```
+
+or using preventSinglePointFailure
+
+```yaml
+data:
+  linear: '{"coresPerReplica":256,"nodesPerReplica":16,"preventSinglePointFailure":true}'
+```
