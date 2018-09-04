@@ -52,7 +52,7 @@
         "promptForTags": false,
         "transform": "camelcase"
     },
-    "html.format.endWithNewline": false,
+    "html.format.endWithNewline": true,
     "html.format.wrapLineLength": 140,
     "html.suggest.angular1": false,
     "html.suggest.ionic": false,
